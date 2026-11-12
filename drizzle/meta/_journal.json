@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794371649419,
+      "tag": "0000_oborot_store",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794479247328,
+      "tag": "0001_whole_spitfire",
+      "breakpoints": true
+    }
+  ]
+}
