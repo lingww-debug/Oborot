@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./storefront.css";
 
 export const metadata: Metadata = {
   title: "ОБОРОТ — новая жизнь вашей техники",
