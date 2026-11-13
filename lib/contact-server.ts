@@ -21,15 +21,17 @@ async function getTarget(target: Target) {
   return value;
 }
 
-export async function openMessenger(channel: Channel) {
+export async function openMessenger(channel: Channel, draft?: string | null) {
   const link = await getTarget(channel);
   if (linkIncludesNumber(channel, link)) {
     throw new SiteError(403, "Откройте чат со страницы контактов и пройдите проверку.");
   }
+  const destination = new URL(link);
+  if (channel === "telegram" && draft) destination.searchParams.set("text", draft.slice(0, 1024));
   return new Response(null, {
     status: 302,
     headers: {
-      Location: link,
+      Location: destination.href,
       "Cache-Control": "private, no-store",
       "Referrer-Policy": "no-referrer",
     },

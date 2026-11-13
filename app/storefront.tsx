@@ -13,7 +13,7 @@ import { Motion } from "./motion";
 type Target = "phone" | Channel;
 type Modal = { kind: "product"; product: Product }
   | { kind: "contacts"; title: string; prepared?: string }
-  | { kind: "protected"; target: Target };
+  | { kind: "protected"; target: Target; prepared?: string };
 
 function ContactButtons({ settings, phoneLabel, onProtected, muted = false }: {
   settings: PublicSettings;
@@ -47,7 +47,13 @@ function ProductImage({ product, eager = false }: { product: Product; eager?: bo
   );
 }
 
-function ContactCheck({ target }: { target: Target }) {
+function telegramDraft(link: string, description: string) {
+  const url = new URL(link, window.location.origin);
+  url.searchParams.set("text", description);
+  return url.href;
+}
+
+function ContactCheck({ target, prepared }: { target: Target; prepared?: string }) {
   const [phase, setPhase] = useState<"start" | "question" | "result">("start");
   const [question, setQuestion] = useState<{ id: string; prompt: string } | null>(null);
   const [result, setResult] = useState<{ phone?: string; url: string } | null>(null);
@@ -98,7 +104,7 @@ function ContactCheck({ target }: { target: Target }) {
   if (phase === "result" && result) {
     return result.phone
       ? <div className="number-reveal"><a className="revealed-number" href={result.url}>{result.phone}</a><a className="button primary" href={result.url}>Позвонить <span aria-hidden="true">↗</span></a></div>
-      : <a className="button primary" href={result.url} target="_blank" rel="noopener noreferrer">Открыть {target !== "phone" && CHANNELS[target].label} <span aria-hidden="true">↗</span></a>;
+      : <a className="button primary" href={prepared && target === "telegram" ? telegramDraft(result.url, prepared) : result.url} target="_blank" rel="noopener noreferrer">Открыть {target !== "phone" && CHANNELS[target].label} <span aria-hidden="true">↗</span></a>;
   }
   return (
     <div className="check-panel">
@@ -143,6 +149,7 @@ export function Storefront({ settings, products, admin, preview }: {
   const [category, setCategory] = useState<Category | "all">("all");
   const [modal, setModal] = useState<Modal | null>(null);
   const { text } = settings;
+  const telegram = settings.channels.find(({ id }) => id === "telegram");
   const categories = CATEGORIES.filter((name) => products.some((product) => product.category === name));
   const visible = category === "all" ? products : products.filter((product) => product.category === category);
   const openProtected = (target: Target) => setModal({ kind: "protected", target });
@@ -150,12 +157,22 @@ export function Storefront({ settings, products, admin, preview }: {
   function prepareEstimate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const fields = new FormData(event.currentTarget);
+    const price = Number(fields.get("price"));
     const description = [
       "Здравствуйте! Хочу продать смартфон.",
       "Категория: " + fields.get("category"),
       "Модель: " + String(fields.get("model")).trim(),
       "Состояние: " + String(fields.get("condition")).trim(),
+      "Желаемая цена: " + (price ? formatPrice(price) : "не указана"),
     ].join("\n");
+    if (telegram) {
+      if (telegram.protected) {
+        setModal({ kind: "protected", target: "telegram", prepared: description });
+      } else {
+        window.location.assign(telegramDraft("/connect/telegram", description));
+      }
+      return;
+    }
     setModal({ kind: "contacts", title: "Описание для оценки готово", prepared: description });
   }
 
@@ -184,12 +201,6 @@ export function Storefront({ settings, products, admin, preview }: {
               <a className="button primary" href="#catalog">{text.catalogAction} <span aria-hidden="true">↗</span></a>
               <a className="hero-text-link" href="#sell">{text.sellAction} <span aria-hidden="true">↗</span></a>
             </div>
-          </div>
-          <div className="hero-stage" aria-label="Смартфон в зелёном корпусе">
-            <span className="hero-type" aria-hidden="true">ПРОДОЛЖЕНИЕ.</span>
-            <div className="hero-device"><img src="/assets/sample-iphone.webp" alt="Зелёный смартфон: экран и задняя панель" fetchPriority="high" width="560" height="560" /></div>
-            <div className="hero-note"><span className="status-light" /><span>Новая глава.<br /><strong>Тот же характер.</strong></span></div>
-            <a className="scroll-cue" href="#about"><span>Листайте. Всё впереди.</span><span aria-hidden="true">↓</span></a>
           </div>
         </section>
         <section id="about" className="about container" data-reveal>
@@ -229,7 +240,8 @@ export function Storefront({ settings, products, admin, preview }: {
             <input type="hidden" name="category" value="Смартфоны" /><p className="form-intro">Начнём с вашего смартфона.</p>
             <label>Модель<input name="model" placeholder="Например, iPhone 13, 128 ГБ" required maxLength={100} pattern=".*\S.*" /></label>
             <label>Состояние<textarea name="condition" placeholder="Есть ли дефекты, менялись ли детали, что в комплекте?" required rows={3} maxLength={700} /></label>
-            <button type="submit" className="button primary">{text.estimateAction} <span aria-hidden="true">↗</span></button>
+            <label>Желаемая цена, ₽<input name="price" type="number" inputMode="numeric" min={1} max={999999999} step={1} placeholder="Например, 25000" /></label>
+            <button type="submit" className="button primary">{telegram ? "Написать в Telegram" : text.estimateAction} <span aria-hidden="true">↗</span></button>
           </form>
         </section>
         <section id="repair" className="container repair" data-reveal>
@@ -303,7 +315,7 @@ export function Storefront({ settings, products, admin, preview }: {
         <ContactButtons settings={settings} phoneLabel={text.contactPhone} onProtected={openProtected} />
       </Overlay>}
       {modal?.kind === "protected" && <Overlay title={modal.target === "phone" ? "Номер телефона" : "Открыть " + CHANNELS[modal.target].label} onClose={() => setModal(null)}>
-        <ContactCheck target={modal.target} key={modal.target} />
+        <ContactCheck target={modal.target} prepared={modal.prepared} key={modal.target} />
       </Overlay>}
     </div>
   );
