@@ -254,7 +254,7 @@ export function Storefront({ settings, products, admin, preview }: {
               {categories.map((name) => <button key={name} type="button" className="filter" aria-pressed={category === name} onClick={() => setCategory(name)}>{name}</button>)}
             </div>
           )}
-          {visible.length ? <div className="product-grid" key={category}>
+          {visible.length ? <div className="product-grid">
             {visible.map((product) => (
               <button type="button" className="product-card" key={product.id} onClick={() => setModal({ kind: "product", product })} aria-label={"Открыть карточку: " + product.title}>
                 <ProductImage product={product} />

@@ -13,7 +13,11 @@ export function Overlay({ title, onClose, children }: {
   useEffect(() => {
     const element = dialog.current;
     const previous = document.activeElement;
+    // Keep autofocus from scrolling the background before the dialog opens.
+    const x = window.scrollX;
+    const y = window.scrollY;
     element?.showModal();
+    window.scrollTo({ left: x, top: y, behavior: "instant" });
     return () => {
       element?.close();
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
