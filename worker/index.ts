@@ -25,7 +25,7 @@ const worker = {
     }
     const response = await runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
     const path = new URL(request.url).pathname;
-    if (path === "/admin" || path.startsWith("/admin/") || path === "/pro" || path.startsWith("/pro/") || path.startsWith("/api/admin/") || path.startsWith("/api/pro")) {
+    if (path === "/admin" || path.startsWith("/admin/") || path.startsWith("/api/admin/")) {
       const secured = new Response(response.body, response);
       secured.headers.set("Cache-Control", "private, no-store");
       secured.headers.set("X-Robots-Tag", "noindex, nofollow");

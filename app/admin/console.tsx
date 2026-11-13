@@ -231,7 +231,7 @@ export function AdminConsole({ initial }: { initial: AdminData }) {
 
   return <div className="admin-shell" data-palette={saved.palette}>
     <header className="admin-header"><div className="admin-wrap">
-      <Brand /><a className="button secondary" href="/pro">Кабинет скупов ↗</a>
+      <Brand />
       <a className="button secondary" href="/" target="_blank" rel="noopener noreferrer">Открыть сайт <span aria-hidden="true">↗</span></a>
     </div></header>
     <main className="admin-wrap admin-main">

@@ -38,6 +38,7 @@ export const contactLimits = sqliteTable("contact_limits", {
   expiresAt: integer("expires_at").notNull(),
 }, (table) => [index("contact_limit_expiry").on(table.expiresAt)]);
 
+// Retired partner storage remains for migration continuity; no application routes access it.
 export const proAccess = sqliteTable("pro_access", {
   email: text().primaryKey(),
   expiresAt: integer("expires_at").notNull(),

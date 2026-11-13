@@ -287,7 +287,7 @@ export function Storefront({ settings, products, admin, preview }: {
       </main>
       <footer className="site-footer container">
         <Brand href="#main" />
-        <p className="footer-tagline">{text.brandTagline}</p><div><a href="/pro">Для партнёров ↗</a>{admin && <a href="/admin">Админка ↗</a>}<a href="#main">Наверх ↑</a></div>
+        <p className="footer-tagline">{text.brandTagline}</p><div>{admin && <a href="/admin">Админка ↗</a>}<a href="#main">Наверх ↑</a></div>
       </footer>
       </Motion>
       {modal?.kind === "product" && <Overlay title={modal.product.title} onClose={() => setModal(null)}>
