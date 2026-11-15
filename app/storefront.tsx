@@ -10,6 +10,8 @@ import { Brand, BrandMark } from "./brand";
 import { Overlay } from "./overlay";
 import { Motion } from "./motion";
 
+const IPHONE_MODELS = ["iPhone X", "iPhone XR", "iPhone XS", "iPhone XS Max", ...Array.from({length: 8}, (_, i) => i + 11).flatMap(n => (n === 11 ? ["", "Pro", "Pro Max"] : n === 12 || n === 13 ? ["", "mini", "Pro", "Pro Max"] : ["", "Plus", "Pro", "Pro Max"]).map(v => `iPhone ${n}${v ? " " + v : ""}`)), "iPhone Air", "iPhone Duo"];
+const IPHONE_CONDITIONS = ["Без повреждений", "Разбит экран", "Повреждён корпус", "Разбит экран и корпус", "Не включается"];
 type Target = "phone" | Channel;
 type Modal = { kind: "product"; product: Product }
   | { kind: "contacts"; title: string; prepared?: string }
@@ -163,6 +165,8 @@ export function Storefront({ settings, products, admin, preview }: {
       "Категория: " + fields.get("category"),
       "Модель: " + String(fields.get("model")).trim(),
       "Состояние: " + String(fields.get("condition")).trim(),
+      "АКБ: " + (fields.get("battery") ? String(fields.get("battery")) + "%" : "не указано"),
+      "Дополнительные дефекты: " + (String(fields.get("defects") || "").trim() || "не указаны"),
       "Желаемая цена: " + (price ? formatPrice(price) : "не указана"),
     ].join("\n");
     if (telegram) {
@@ -238,8 +242,10 @@ export function Storefront({ settings, products, admin, preview }: {
           <form className="estimate-form" onSubmit={prepareEstimate}>
             <h3>{text.estimateTitle}</h3>
             <input type="hidden" name="category" value="Смартфоны" /><p className="form-intro">Начнём с вашего смартфона.</p>
-            <label>Модель<input name="model" placeholder="Например, iPhone 13, 128 ГБ" required maxLength={100} pattern=".*\S.*" /></label>
-            <label>Состояние<textarea name="condition" placeholder="Есть ли дефекты, менялись ли детали, что в комплекте?" required rows={3} maxLength={700} /></label>
+            <label>Модель<select name="model" required defaultValue=""><option value="" disabled>Выберите модель iPhone</option>{IPHONE_MODELS.map(model => <option key={model} value={model}>{model}</option>)}</select></label>
+            <label>Состояние<select name="condition" required defaultValue=""><option value="" disabled>Выберите состояние</option>{IPHONE_CONDITIONS.map(condition => <option key={condition} value={condition}>{condition}</option>)}</select></label>
+            <label>Состояние АКБ, %<input name="battery" type="number" inputMode="numeric" min={0} max={100} step={1} placeholder="Например, 85" /></label>
+            <label>Дополнительные дефекты<textarea name="defects" placeholder="Face ID, камера, динамик, следы влаги, замена деталей…" rows={3} maxLength={700} /></label>
             <label>Желаемая цена, ₽<input name="price" type="number" inputMode="numeric" min={1} max={999999999} step={1} placeholder="Например, 25000" /></label>
             <button type="submit" className="button primary">{telegram ? "Написать в Telegram" : text.estimateAction} <span aria-hidden="true">↗</span></button>
           </form>
